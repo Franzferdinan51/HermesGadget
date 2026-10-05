@@ -33,10 +33,11 @@ struct InitCommand {
   uint16_t delay_ms;
 };
 
-// Panel bring-up for CO5300 1.75" modules: vendor page settings, RGB565,
-// tearing line on, full brightness, the 466x466 window (column offset 6),
-// then sleep out and display on.
-constexpr InitCommand kInit[] = {
+// Panel bring-up for CO5300 modules: vendor page settings, RGB565, tearing
+// line on, full brightness, then (from the board config) the column/row
+// window, sleep out and display on. The 1.75" window is columns 6..471,
+// rows 0..465; other glass differs.
+constexpr InitCommand kInitPre[] = {
     {0x36, {0x00}, 1, 0},  // memory access control: no rotation
     {0x3A, {0x55}, 1, 0},  // 16 bits per pixel
     {0xFE, {0x20}, 1, 0},
@@ -49,8 +50,8 @@ constexpr InitCommand kInit[] = {
     {0x53, {0x20}, 1, 0},  // brightness control on
     {0x51, {0xFF}, 1, 0},  // brightness
     {0x63, {0xFF}, 1, 0},
-    {0x2A, {0x00, 0x06, 0x01, 0xD7}, 4, 0},
-    {0x2B, {0x00, 0x00, 0x01, 0xD1}, 4, 600},
+};
+constexpr InitCommand kInitPost[] = {
     {0x11, {}, 0, 600},  // sleep out
     {0x29, {}, 0, 0},    // display on
 };
@@ -78,6 +79,16 @@ bool AmoledDisplay::begin(const AmoledConfig& cfg) {
   }
   std::memset(fb_, 0, px * 2);
   done_ = xSemaphoreCreateBinary();
+
+  if (cfg.enable >= 0) {
+    // Panel rail: high before any panel traffic, or the screen stays dark.
+    gpio_config_t en = {};
+    en.pin_bit_mask = 1ULL << cfg.enable;
+    en.mode = GPIO_MODE_OUTPUT;
+    gpio_config(&en);
+    gpio_set_level(static_cast<gpio_num_t>(cfg.enable), 1);
+    vTaskDelay(pdMS_TO_TICKS(50));
+  }
 
   spi_bus_config_t bus = {};
   bus.sclk_io_num = cfg.sclk;
@@ -116,7 +127,21 @@ bool AmoledDisplay::begin(const AmoledConfig& cfg) {
     gpio_set_level(static_cast<gpio_num_t>(cfg.rst), 1);
     vTaskDelay(pdMS_TO_TICKS(150));
   }
-  for (const auto& c : kInit) {
+  for (const auto& c : kInitPre) {
+    command(c.cmd, c.data, c.len);
+    if (c.delay_ms) vTaskDelay(pdMS_TO_TICKS(c.delay_ms));
+  }
+  // Column/row address window from the board geometry (even start, even span).
+  const int x0 = cfg.gap_x, x1 = cfg.gap_x + cfg.width - 1;
+  const int y0 = cfg.gap_y, y1 = cfg.gap_y + cfg.height - 1;
+  const uint8_t cols[4] = {static_cast<uint8_t>(x0 >> 8), static_cast<uint8_t>(x0),
+                           static_cast<uint8_t>(x1 >> 8), static_cast<uint8_t>(x1)};
+  const uint8_t rows[4] = {static_cast<uint8_t>(y0 >> 8), static_cast<uint8_t>(y0),
+                           static_cast<uint8_t>(y1 >> 8), static_cast<uint8_t>(y1)};
+  command(0x2A, cols, 4);
+  command(0x2B, rows, 4);
+  vTaskDelay(pdMS_TO_TICKS(600));
+  for (const auto& c : kInitPost) {
     command(c.cmd, c.data, c.len);
     if (c.delay_ms) vTaskDelay(pdMS_TO_TICKS(c.delay_ms));
   }

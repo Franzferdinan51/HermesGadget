@@ -42,11 +42,13 @@ struct I2sSpeakerConfig {
   int bclk = -1, ws = -1, dout = -1;
 };
 
-// QSPI AMOLED with a CO5300 controller (round 466x466 panels).
+// QSPI AMOLED with a CO5300 controller (round 466x466 panels, rectangular 410x502).
 struct AmoledConfig {
   bool enabled = false;
   uint16_t width = 466, height = 466;
   int cs = -1, sclk = -1, d0 = -1, d1 = -1, d2 = -1, d3 = -1, rst = -1;
+  // GPIO driven high to power the panel rail before any panel traffic (-1 = none).
+  int enable = -1;
   int gap_x = 0, gap_y = 0;  // the controller's RAM is wider than the glass
   int qspi_mhz = 40;
   bool round = false;

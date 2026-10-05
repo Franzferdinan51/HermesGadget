@@ -11,6 +11,7 @@ Hardware ports remain experimental until the [verification table](hardware-valid
 | [Waveshare ESP32-S3-LCD-1.54](hardware.md#waveshare-esp32-s3-lcd-154) | Hold BOOT to talk | Onboard microphones and speaker |
 | [Waveshare ESP32-S3-Touch-AMOLED-1.75](hardware.md#esp32-s3-touch-amoled-175) | Hold the screen to talk | Onboard microphones; speaker output |
 | [Waveshare ESP32-S3-Touch-AMOLED-1.75C](hardware.md#esp32-s3-touch-amoled-175c) | Hold the screen to talk | Onboard microphones and speaker |
+| [Waveshare ESP32-S3-Touch-AMOLED-2.06](hardware.md#esp32-s3-touch-amoled-206) | Hold the screen or BOOT to talk | Onboard microphones and speaker |
 | [Espressif ESP32-S3-BOX-3](hardware.md#esp32-s3-box-3) | Hold the screen or BOOT to talk | Onboard microphones and speaker |
 | [M5Stack CoreS3](hardware.md#m5stack-cores3) | Hold the screen to talk | Onboard microphones and speaker; battery management |
 | [LilyGO T-Display-S3](hardware.md#lilygo-t-display-s3) | BOOT and Button2; send text through the USB console | No onboard microphone or speaker |

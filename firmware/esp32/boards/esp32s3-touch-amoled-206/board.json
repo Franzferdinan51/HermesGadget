@@ -1,0 +1,6 @@
+{
+  "title": "Waveshare ESP32-S3-Touch-AMOLED-2.06",
+  "summary": "Watch-style 2.06\" AMOLED touchscreen, onboard microphones and speaker. Experimental.",
+  "docs": "docs/hardware.md#esp32-s3-touch-amoled-206",
+  "ready_made": true
+}

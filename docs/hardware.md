@@ -168,6 +168,36 @@ Before relying on the port, run the [physical checklist](hardware-validation.md)
 
 Pin and supply references: [Waveshare schematic](https://files.waveshare.com/wiki/ESP32-S3-Touch-AMOLED-1.75C/ESP32-S3-Touch-AMOLED-1.75C-schematic.pdf) and [manufacturer board definitions](https://github.com/waveshareteam/Waveshare-ESP32-components/tree/master/bsp/esp32_s3_touch_amoled_1_75c). The port reuses the existing CO5300, CST9217 and Espressif codec drivers; see the [license notes](../README.md#license).
 
+## ESP32-S3-Touch-AMOLED-2.06
+
+Use `esp32s3-touch-amoled-206` for Waveshare's watch-style board: an ESP32-S3 with 32 MB flash and 8 MB octal PSRAM, a rectangular 2.06" 410×502 AMOLED, capacitive touch, two microphones, a speaker, a battery charger and watch straps. This is an experimental port. Use its exact image; the 1.75/1.75C images have different pins, a different panel and a different touch controller.
+
+| Part | Connection |
+|---|---|
+| CO5300 410×502 AMOLED | QSPI CS 12, clock 11, D0–D3 4/5/6/7, reset 8, panel enable 13 (high before any panel traffic); rectangular, no column offset |
+| FT3168 touch | I2C 0x38, reset 9; interrupt 38 unused because input is polled; driven through the FT5x06-compatible driver |
+| I2C | SDA 15, SCL 14, 400 kHz |
+| ES8311 speaker / ES7210 microphones | MCLK 16, BCLK 41, WS 45, DOUT 42, DIN 40; amplifier enable 46 |
+| AXP2101 | I2C 0x34; ALDO1 at 3.3 V supplies analog audio |
+| BOOT | GPIO 0, TALK |
+
+Hold the screen or BOOT to talk. Swipe down to cancel. Hold the screen's title for one second to open settings. PWR retains its hardware power function; firmware does not map it to CANCEL on this model. There is no TCA9554 expander. The IMU, RTC and TF slot are not exposed.
+
+The firmware raises the panel enable rail before QSPI bring-up, derives the CO5300 column/row window from the 410×502 geometry, and enables ALDO1 for audio while preserving the other rails and charging settings. Battery readings and local power-off use the existing AXP2101 driver. An unavailable ADC or gauge reading remains absent. Use the settings menu for microphone, speaker, display, touch, volume, brightness and power checks.
+
+Build and flash over the board's USB-C data port:
+
+```bash
+cd firmware/esp32
+pio run -e esp32s3-touch-amoled-206 -t upload -t monitor
+```
+
+For ESP-IDF, use `SDKCONFIG_DEFAULTS="sdkconfig.defaults;boards/esp32s3-touch-amoled-206/sdkconfig.defaults"` with a separate build directory and sdkconfig. The release workflow packages a distinct image and board identity, which prevents installing another model's OTA image.
+
+Before relying on the port, run the [physical checklist](hardware-validation.md). Check screen orientation and edges, touch alignment, microphone level, a spoken reply, Wi-Fi setup and USB recovery. Test charging, shutdown and wake separately on USB and battery. No physical report is recorded yet.
+
+Pin and supply references: [Waveshare wiki](https://www.waveshare.com/wiki/ESP32-S3-Touch-AMOLED-2.06) and the [2.06 board support in muse-gadget-206](https://github.com/Franzferdinan51/muse-gadget-206) (Apache-2.0), whose schematic-derived pinout this port follows. The port reuses the existing CO5300, FT5x06-family and Espressif codec drivers; see the [license notes](../README.md#license).
+
 ## LilyGO T-Display-S3
 
 Board option `tdisplay-s3`, for LilyGO's 1.9" module: an ESP32-S3R8 (8 MB octal PSRAM) with 16 MB flash, a 170×320 ST7789 panel, two buttons, a battery charger and a battery voltage divider. **This board has no microphone, speaker or audio codec**, so it works as a text gadget: Hermes replies, cards and prompts appear on the screen and typed messages go out. Holding TALK shows that no microphone is available. Nothing needs wiring.

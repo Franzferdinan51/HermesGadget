@@ -27,8 +27,21 @@ bool TouchInput::begin(const TouchConfig& touch, const ExpanderKeyConfig& key, i
   touch_ = touch;
   key_ = key;
   if (touch.enabled && touch.controller == TouchController::Ft5x06) {
+    if (touch.rst >= 0) {
+      // Release reset before talking to the controller (HIGH-LOW-HIGH).
+      gpio_config_t rst = {};
+      rst.pin_bit_mask = 1ULL << touch.rst;
+      rst.mode = GPIO_MODE_OUTPUT;
+      gpio_config(&rst);
+      gpio_set_level(static_cast<gpio_num_t>(touch.rst), 1);
+      vTaskDelay(pdMS_TO_TICKS(1));
+      gpio_set_level(static_cast<gpio_num_t>(touch.rst), 0);
+      vTaskDelay(pdMS_TO_TICKS(20));
+      gpio_set_level(static_cast<gpio_num_t>(touch.rst), 1);
+      vTaskDelay(pdMS_TO_TICKS(50));
+    }
     esp_lcd_panel_io_i2c_config_t io_cfg = {};
-    io_cfg.dev_addr = ESP_LCD_TOUCH_IO_I2C_FT5x06_ADDRESS;
+    io_cfg.dev_addr = touch.addr;
     io_cfg.scl_speed_hz = 100000;
     io_cfg.control_phase_bytes = 1;
     io_cfg.lcd_cmd_bits = 8;
@@ -37,8 +50,10 @@ bool TouchInput::begin(const TouchConfig& touch, const ExpanderKeyConfig& key, i
     esp_lcd_touch_config_t cfg = {};
     cfg.x_max = touch.width;
     cfg.y_max = touch.height;
-    cfg.rst_gpio_num = GPIO_NUM_NC;  // The board's expander already released reset.
-    cfg.int_gpio_num = GPIO_NUM_NC;
+    cfg.rst_gpio_num = GPIO_NUM_NC;  // Reset is pulsed above when the board wires it.
+    cfg.int_gpio_num = GPIO_NUM_NC;  // Input is polled; the interrupt pin stays unused.
+    cfg.flags.mirror_x = touch.mirror_x;
+    cfg.flags.mirror_y = touch.mirror_y;
     if (esp_lcd_new_panel_io_i2c(bus, &io_cfg, &io) == ESP_OK &&
         esp_lcd_touch_new_i2c_ft5x06(io, &cfg, &managed_touch_) != ESP_OK) esp_lcd_panel_io_del(io);
   } else if (touch.enabled && touch.controller == TouchController::Box3) {

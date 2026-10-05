@@ -20,6 +20,14 @@
   <br><sub>The desktop simulator runs the same device core. No board needed to try it.</sub>
 </p>
 
+> **HermesGadget fork:** this repository tracks the upstream SDK and adds an
+> experimental port for the watch-style
+> [Waveshare ESP32-S3-Touch-AMOLED-2.06](docs/hardware.md#esp32-s3-touch-amoled-206)
+> (`esp32s3-touch-amoled-206`, simulator profile `sim-410x502`). The 2.06
+> pinout follows the schematic-derived board support in
+> [muse-gadget-206](https://github.com/Franzferdinan51/muse-gadget-206). The
+> watch connects to Hermes Agent over Wi-Fi; no phone companion app is needed.
+
 ## Choose your starting point
 
 | I have a board | I want to try it first | I want to build with it |

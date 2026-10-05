@@ -33,6 +33,8 @@ menu "Hermes Gadget"
             bool "Waveshare ESP32-S3-Touch-AMOLED-1.75 (round AMOLED, touch, codecs)"
         config HG_BOARD_AMOLED_175C
             bool "Waveshare ESP32-S3-Touch-AMOLED-1.75C (32 MB flash, enclosed AMOLED)"
+        config HG_BOARD_AMOLED_206
+            bool "Waveshare ESP32-S3-Touch-AMOLED-2.06 (410x502 AMOLED watch, touch, codecs)"
         config HG_BOARD_BOX3
             bool "Espressif ESP32-S3-BOX-3 (LCD, touch, ES8311 + ES7210)"
         config HG_BOARD_CORES3
