@@ -97,10 +97,12 @@ bool TouchInput::begin(const TouchConfig& touch, const ExpanderKeyConfig& key, i
 bool TouchInput::read_touch(TouchSample& out) {
   if (managed_touch_) {
     if (esp_lcd_touch_read_data(managed_touch_) != ESP_OK) return false;
-    uint16_t x = 0, y = 0;
+    // esp_lcd_touch_get_coordinates is deprecated (removed in component
+    // v2.0.0); esp_lcd_touch_get_data fills the same processed point data.
+    esp_lcd_touch_point_data_t point = {};
     uint8_t points = 0;
-    const bool down = esp_lcd_touch_get_coordinates(managed_touch_, &x, &y, nullptr, &points, 1);
-    out = {down && points > 0, static_cast<int16_t>(x), static_cast<int16_t>(y)};
+    const bool down = esp_lcd_touch_get_data(managed_touch_, &point, &points, 1) == ESP_OK && points > 0;
+    out = {down, static_cast<int16_t>(point.x), static_cast<int16_t>(point.y)};
     return true;
   }
   const uint8_t reg[2] = {0xD0, 0x00};
